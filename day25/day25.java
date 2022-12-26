@@ -1,60 +1,61 @@
-import java.io.File;
-import java.util.Scanner; 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import java.io.File;  
+import java.util.Scanner;
 import java.io.FileNotFoundException;
 
 public class day25{
 
-	public static long SNAFUtoDecimal(String snafu){
+	private static final Map<Character, Integer> VALUES = Map.of( '0', 0, '1', 1, '2', 2, '=', -2,
+      '-', -1 );
+  	private static final List<Character> DIGITS = List.of( '0', '1', '2', '=', '-' );
+ 	private static final List<Integer> REMAINDERS = List.of( 0, 1, 2, -2, -1 );
 
-		long[] powers = {1, 5, 25, 125, 625, 3125, 15625, 78125, 390625, 1953125, 9765625, 48828125, 244140625, 1220703125, 6103515625L, 30517578125L, 152587890625L, 762939453125L, 0, 0, 0, 0, 0, 0};
-		int lengthCounter = snafu.length() -1;
-		long decimalNumber = 0;
+	private static String toSnafu(long decimal){
 
-		for(int i = 0; i < snafu.length(); i++){
+		final var snafu = new StringBuilder();  
 
-			if(snafu.charAt(i) == '1'){
+		while(decimal != 0){
 
-				decimalNumber += powers[lengthCounter];
-			}else if(snafu.charAt(i) == '2'){
-
-				decimalNumber += (powers[lengthCounter]) * 2;
-			}else if(snafu.charAt(i) == '0'){
-
-				//nothing happens here
-			}else if(snafu.charAt(i) == '-'){
-
-				decimalNumber += (powers[lengthCounter]) * -1;
-				
-			}else if(snafu.charAt(i) == '='){
-
-				decimalNumber += (powers[lengthCounter]) * -2;
-			}
-			lengthCounter--;
+			final int remainder = (int) (decimal % 5);
+			decimal -= REMAINDERS.get(remainder);
+			snafu.append(DIGITS.get(remainder));
+			decimal /= 5;
 		}
-
-		return decimalNumber;
+		return snafu.reverse().toString();
 	}
-	public static void decimalToSNAFU(long decimal){
+	private static long toDecimal(final String snafu){
 
+		long decimal = 0L;
 
+		for(final var c: snafu.toCharArray()){
+
+			decimal *= 5;
+			decimal += VALUES.get(c);
+		}
+		return decimal;
 	}
 
 	public static void main(String[] args){
 
 		long result = 0;
+		String snafu = "";
 
 		try{
+
 			File file = new File("input.txt");
 			Scanner reader = new Scanner(file);
 
 			while(reader.hasNextLine()){
 				String data = reader.nextLine();
-				result += SNAFUtoDecimal(data);
+				result += toDecimal(data);
 			}
 		}catch(FileNotFoundException e){
-			System.out.println("An error occurred");
+			System.out.println("An error has occurred");
 			e.printStackTrace();
 		}
-		System.out.println(result);
+		snafu = toSnafu(result);
+		System.out.println(snafu);
 	}
 }
